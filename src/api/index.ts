@@ -1,10 +1,11 @@
 import axios from 'axios';
-import { BACKEND_URL } from '../lib/constant';
+
+import { BACKEND_URL } from '../lib/options';
 
 export const post = async (router: string, data?: any) => {
-	const result = await axios.post(BACKEND_URL + router, data);
-	if (result.data){
-		return result.data;
-	}
-	return null;
+  const result = await axios.post(BACKEND_URL + router, data);
+  if (result.data) {
+    return result.data;
+  }
+  return null;
 };
