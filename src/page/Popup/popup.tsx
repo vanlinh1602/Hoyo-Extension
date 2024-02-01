@@ -1,53 +1,51 @@
-import { Button, Form, Input, notification, Space } from 'antd';
-import React from 'react';
-
-import { post } from '../../api';
-import { cookiesGet } from '../../lib/options';
+import { Avatar, Button, Row, Space, Typography } from 'antd';
+import React, { useEffect } from 'react';
 
 const Popup = () => {
-  const [form] = Form.useForm();
-  const handleGetCookie = async () => {
-    const { discordId } = await form.validateFields();
-    const cookies = await chrome.cookies.getAll({ domain: '.hoyolab.com' });
-    const upload: {
-      discordId: string,
-      cookies: { [T: string]: string },
-    } = {
-      discordId,
-      cookies: {},
-    };
-    Object.entries(cookiesGet).forEach(([key, value]) => {
-      const cookieFind = cookies.find((cookie) => cookie.name === value);
-      upload.cookies[key] = cookieFind?.value || '';
+  const [isHasCookie, setIsHasCookie] = React.useState(false);
+  useEffect(() => {
+    chrome.cookies.getAll({ name: 'ltoken_v2', domain: '.hoyolab.com' }, (cookies) => {
+      setIsHasCookie(cookies.length > 0);
     });
-    console.log(upload);
-
-    const result = await post('/api/syncToken', upload);
-    if (result) {
-      notification.success({
-        message: 'Success',
-        description: 'Successfully synced account!',
-        duration: 3,
-      });
-    } else {
-      notification.error({
-        message: 'Error',
-        description: 'Failed to sync account!',
-        duration: 3,
-      });
-    }
-  };
+  }, []);
 
   return (
     <Space direction="vertical" style={{ width: 250 }}>
-      <Form form={form}>
-        <Form.Item name="discordId" label="Discord ID">
-          <Input />
-        </Form.Item>
-        <Button type="primary" onClick={handleGetCookie}>
-          Sync Account
-        </Button>
-      </Form>
+      <Row align="middle">
+        <Avatar size="large" src="/icon.png" />
+        <Typography.Title level={5} style={{ margin: '0px 20px' }}>
+          Hoyo Bot
+        </Typography.Title>
+      </Row>
+      {!isHasCookie ? (
+        <div>
+          <Typography.Text type="success">You have logged in to the game</Typography.Text>
+          <Button
+            type="primary"
+            onClick={() => {
+              chrome.tabs.create({
+                url: `chrome-extension://${chrome.runtime.id}/options.html`,
+              });
+            }}
+          >
+            Sync Account
+          </Button>
+        </div>
+      ) : (
+        <div>
+          <Typography.Text type="danger">Please login to the game first</Typography.Text>
+          <Button
+            type="primary"
+            onClick={() => {
+              chrome.tabs.create({
+                url: 'https://www.hoyolab.com/',
+              });
+            }}
+          >
+            Go to login
+          </Button>
+        </div>
+      )}
     </Space>
   );
 };

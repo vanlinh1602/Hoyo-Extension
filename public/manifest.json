@@ -1,16 +1,27 @@
 {
   "manifest_version": 3,
 
-  "name": "Manga Extension",
-  "description": "Extension for help read manga",
-  "version": "1.0",
+  "name": "Hoyo Bot",
+  "description": "Extension for help you to manage your Hoyoverse account",
 
-  "options_ui": {
-    "page": "options.html"
+  "version": "0.1",
+
+  "icons": {
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   },
 
+  "options_page": "options.html",
+
   "action": {
-    "default_icon": "icon.png",
+    "default_icon": {
+      "16": "icon.png",
+      "32": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    },
     "default_popup": "popup.html"
   },
 
@@ -24,6 +35,12 @@
   "background": {
     "service_worker": "js/background.js"
   },
+  "web_accessible_resources": [
+    {
+      "resources": ["/icon.png"],
+      "matches": ["<all_urls>"]
+    }
+  ],
 
   "permissions": ["storage", "cookies"],
 

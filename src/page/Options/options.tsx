@@ -1,71 +1,53 @@
-import React, { useEffect, useState } from 'react';
+import { Button, Form, Input, notification, Space } from 'antd';
+import React from 'react';
+
+import { post } from '../../api';
+import { cookiesGet } from '../../lib/options';
 
 const Options = () => {
-	const [color, setColor] = useState<string>('');
-	const [status, setStatus] = useState<string>('');
-	const [like, setLike] = useState<boolean>(false);
+  const [form] = Form.useForm();
+  const handleGetCookie = async () => {
+    const { discordId } = await form.validateFields();
+    const cookies = await chrome.cookies.getAll({ domain: '.hoyolab.com' });
+    const upload: {
+      discordId: string;
+      cookies: { [T: string]: string };
+    } = {
+      discordId,
+      cookies: {},
+    };
+    Object.entries(cookiesGet).forEach(([key, value]) => {
+      const cookieFind = cookies.find((cookie) => cookie.name === value);
+      upload.cookies[key] = cookieFind?.value || '';
+    });
+    const result = await post('/api/syncToken', upload);
+    if (result) {
+      notification.success({
+        message: 'Success',
+        description: 'Successfully synced account!',
+        duration: 3,
+      });
+    } else {
+      notification.error({
+        message: 'Error',
+        description: 'Failed to sync account!',
+        duration: 3,
+      });
+    }
+  };
 
-	useEffect(() => {
-		// Restores select box and checkbox state using the preferences
-		// stored in chrome.storage.
-		chrome.storage.sync.get(
-			{
-				favoriteColor: 'red',
-				likesColor: true,
-			},
-			(items) => {
-				setColor(items.favoriteColor);
-				setLike(items.likesColor);
-			}
-		);
-	}, []);
-
-	const saveOptions = () => {
-		// Saves options to chrome.storage.sync.
-		chrome.storage.sync.set(
-			{
-				favoriteColor: color,
-				likesColor: like,
-			},
-			() => {
-				// Update status to let user know options were saved.
-				setStatus('Options saved.');
-				const id = setTimeout(() => {
-					setStatus('');
-				}, 1000);
-				return () => clearTimeout(id);
-			}
-		);
-	};
-
-	return (
-		<>
-			<div>
-        Favorite color: <select
-					value={color}
-					onChange={(event) => setColor(event.target.value)}
-				>
-					<option value="red">red</option>
-					<option value="green">green</option>
-					<option value="blue">blue</option>
-					<option value="yellow">yellow</option>
-				</select>
-			</div>
-			<div>
-				<label>
-					<input
-						type="checkbox"
-						checked={like}
-						onChange={(event) => setLike(event.target.checked)}
-					/>
-          I like colors.
-				</label>
-			</div>
-			<div>{status}</div>
-			<button onClick={saveOptions}>Save</button>
-		</>
-	);
+  return (
+    <Space direction="vertical" style={{ width: 250 }}>
+      <Form form={form}>
+        <Form.Item name="discordId" label="Discord ID">
+          <Input />
+        </Form.Item>
+        <Button type="primary" onClick={handleGetCookie}>
+          Sync Account
+        </Button>
+      </Form>
+    </Space>
+  );
 };
 
 export default Options;
-
